@@ -19,10 +19,10 @@ class FabricanteAdmin(admin.ModelAdmin):
 
 class ProdutoAdmin(admin.ModelAdmin):
     date_hierarchy = 'criado_em'
-    list_display = ('Produto', 'destaque', 'promocao', 'msgPromocao', 'preco', 'categoria',)
+    list_display = ('Produto', 'destaque', 'promocao', 'msgPromocao', 'preco', 'categoria','fabricante',)
     search_fields = ('Produto',)
     empty_value_display = 'Vazio'
-    fields = ('Produto', 'destaque', 'promocao', 'preco', 'categoria',)
+    fields = ('Produto', 'destaque', 'promocao', 'preco', 'categoria','fabricante',)
     exclude = ('msgPromocao',)
 
 
