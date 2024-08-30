@@ -48,7 +48,11 @@
         </div>
         
         <div class="row mt-3">
+            {% if produto.image %}
             <img class="border border-secondary" width="200px" src="/media/{{ produto.image }}"/>
+            {% else %}
+                <p>Imagem não disponivel</p>
+            {%endif%}
         </div>
         
         <div class="row mt-3">

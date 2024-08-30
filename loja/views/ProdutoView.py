@@ -4,6 +4,17 @@ from datetime import timedelta, datetime
 from django.utils import timezone
 from django.core.files.storage import FileSystemStorage
 
+
+def delete_produto_view(request, id=None):
+    # Processa o evento GET gerado pela action
+    produtos = Produto.objects.all()
+    if id is not None:
+        produtos = produtos.filter(id=id)
+    produto = produtos.first()
+    print(produto)
+    context = {'produto': produto}
+    return render(request, template_name='produto/produto-delete.html', context=context, status=200)
+
 def list_produto_view(request, id=None):
     produto = request.GET.get("produto")
     destaque = request.GET.get("destaque")
@@ -133,7 +144,6 @@ def create_produto_view(request, id=None):
                 obj_produto.preco = preco
             obj_produto.criado_em = timezone.now()
             obj_produto.alterado_em = obj_produto.criado_em
-            # Se for anexado arquivo, salva na pasta e guarda nome no objeto
             if request.FILES is not None:
                 num_files = len(request.FILES.getlist('image'))
                 if num_files > 0:
@@ -143,9 +153,72 @@ def create_produto_view(request, id=None):
                     filename = fs.save(imagefile.name, imagefile)
                     if (filename is not None) and (filename != ""):
                         obj_produto.image = filename
-            obj_produto.save()
+                obj_produto.save()
             print("Produto %s salvo com sucesso" % produto)
         except Exception as e:
             print("Erro inserindo produto: %s" % e)
         return redirect("/produto")
     return render(request, template_name='produto/produto-create.html',status=200)
+
+
+# adicione a função que trata o postback da interface de exclusão
+def delete_produto_postback(request, id=None):
+
+    # Processa o post back gerado pela action
+    if request.method == 'POST':
+    # Salva dados editados
+        id = request.POST.get("id")
+        produto = request.POST.get("Produto")
+        print("postback-delete")
+        print(id)
+        try:
+            Produto.objects.filter(id=id).delete()
+            print("Produto %s excluido com sucesso" % produto)
+        except Exception as e:
+            print("Erro salvando edição de produto: %s" % e)
+    return redirect("/produto")
+
+def create_produto_view(request):
+    if request.method == 'POST':
+        produto_nome = request.POST.get("Produto")
+        destaque = 'destaque' in request.POST
+        promocao = 'promocao' in request.POST
+        msgPromocao = request.POST.get("msgPromocao")
+        preco = request.POST.get("preco")
+        image = request.FILES.get("image")
+        
+        print("postback-create")
+        print(f"Produto: {produto_nome}")
+        print(f"Destaque: {destaque}")
+        print(f"Promoção: {promocao}")
+        print(f"Mensagem de Promoção: {msgPromocao}")
+        print(f"Preço: {preco}")
+        print(f"Imagem: {image}")
+
+        try:
+            # Create and populate a new Produto instance
+            obj_produto = Produto()
+            obj_produto.Produto = produto_nome
+            obj_produto.destaque = destaque
+            obj_produto.promocao = promocao
+            obj_produto.msgPromocao = msgPromocao
+            obj_produto.preco = float(preco) if preco else 0
+            obj_produto.criado_em = timezone.now()
+            obj_produto.alterado_em = obj_produto.criado_em
+            
+            # Handle file upload
+            if image:
+                fs = FileSystemStorage()
+                filename = fs.save(image.name, image)
+                obj_produto.image = filename
+
+            # Save the Produto instance to the database
+            obj_produto.save()
+            print(f"Produto {produto_nome} salvo com sucesso")
+        except Exception as e:
+            print(f"Erro inserindo produto: {e}")
+
+        return redirect("/produto")
+
+    return render(request, 'produto/produto-create.html', status=200)
+
