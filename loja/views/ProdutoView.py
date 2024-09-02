@@ -33,6 +33,7 @@ def list_produto_view(request, id=None):
         produtos = produtos.filter(categoria__Categoria=categoria)
     if fabricante is not None:
         produtos = produtos.filter(fabricante__Fabricante=fabricante)
+ 
     if dias is not None:
         now = timezone.now()
         now = now - timedelta(days = int(dias))
@@ -41,13 +42,14 @@ def list_produto_view(request, id=None):
     return render(request, template_name='produto/produto.html', context=context, status=200)
 
 def details_produto_view(request, id=None):
-    # Processa o evento GET gerado pela action
     produtos = Produto.objects.all()
     if id is not None:
         produtos = produtos.filter(id=id)
     produto = produtos.first()
     print(produto)
-    context = {'produto': produto}
+    Fabricantes = Fabricante.objects.all()
+    Categorias = Categoria.objects.all()
+    context = { 'produto': produto, 'fabricantes' : Fabricantes, 'categorias' : Categorias}
     return render(request, template_name='produto/produto-details.html', context=context, status=200)
 
 def edit_produto_view(request, id=None):
@@ -103,66 +105,6 @@ def delete_produto_view(request, id=None):
     return render(request, template_name='produto/produto-delete.html', context=context, status=200)
 
 def delete_produto_postback(request, id=None):
-# Processa o post back gerado pela action
-    if request.method == 'POST':
-    # Salva dados editados
-        id = request.POST.get("id")
-        produto = request.POST.get("Produto")
-        print("postback-delete")
-        print(id)
-        try:
-            Produto.objects.filter(id=id).delete()
-            print("Produto %s excluido com sucesso" % produto)
-        except Exception as e:
-            print("Erro salvando edição de produto: %s" % e)
-    return redirect("/produto")
-
-def create_produto_view(request, id=None):
-    if request.method == 'POST':
-        produto = request.POST.get("Produto")
-        destaque = request.POST.get("destaque")
-        promocao = request.POST.get("promocao")
-        msgPromocao = request.POST.get("msgPromocao")
-        preco = request.POST.get("preco")
-        image = request.POST.get("image")
-        print("postback-create")
-        print(produto)
-        print(destaque)
-        print(promocao)
-        print(msgPromocao)
-        print(preco)
-        print(image)
-        try:
-            obj_produto = Produto()
-            obj_produto.Produto = produto
-            obj_produto.destaque = (destaque is not None)
-            obj_produto.promocao = (promocao is not None)
-            if msgPromocao is not None:
-                obj_produto.msgPromocao = msgPromocao
-            obj_produto.preco = 0
-            if (preco is not None) and ( preco != ""):
-                obj_produto.preco = preco
-            obj_produto.criado_em = timezone.now()
-            obj_produto.alterado_em = obj_produto.criado_em
-            if request.FILES is not None:
-                num_files = len(request.FILES.getlist('image'))
-                if num_files > 0:
-                    imagefile = request.FILES['image']
-                    print(imagefile)
-                    fs = FileSystemStorage()
-                    filename = fs.save(imagefile.name, imagefile)
-                    if (filename is not None) and (filename != ""):
-                        obj_produto.image = filename
-                obj_produto.save()
-            print("Produto %s salvo com sucesso" % produto)
-        except Exception as e:
-            print("Erro inserindo produto: %s" % e)
-        return redirect("/produto")
-    return render(request, template_name='produto/produto-create.html',status=200)
-
-
-# adicione a função que trata o postback da interface de exclusão
-def delete_produto_postback(request, id=None):
 
     # Processa o post back gerado pela action
     if request.method == 'POST':
@@ -179,6 +121,10 @@ def delete_produto_postback(request, id=None):
     return redirect("/produto")
 
 def create_produto_view(request):
+    Fabricantes = Fabricante.objects.all()
+    Categorias = Categoria.objects.all()
+    context = {'fabricantes': Fabricantes, 'categorias': Categorias}
+
     if request.method == 'POST':
         produto_nome = request.POST.get("Produto")
         destaque = 'destaque' in request.POST
@@ -186,7 +132,9 @@ def create_produto_view(request):
         msgPromocao = request.POST.get("msgPromocao")
         preco = request.POST.get("preco")
         image = request.FILES.get("image")
-        
+        fabricante_id = request.POST.get("Fabricante")
+        categoria_id = request.POST.get("Categoria")
+
         print("postback-create")
         print(f"Produto: {produto_nome}")
         print(f"Destaque: {destaque}")
@@ -196,7 +144,7 @@ def create_produto_view(request):
         print(f"Imagem: {image}")
 
         try:
-            # Create and populate a new Produto instance
+            # Criando e populando uma nova instância de Produto
             obj_produto = Produto()
             obj_produto.Produto = produto_nome
             obj_produto.destaque = destaque
@@ -206,13 +154,18 @@ def create_produto_view(request):
             obj_produto.criado_em = timezone.now()
             obj_produto.alterado_em = obj_produto.criado_em
             
-            # Handle file upload
+            if fabricante_id:
+                obj_produto.fabricante = Fabricante.objects.get(id=fabricante_id)
+            if categoria_id:
+                obj_produto.categoria = Categoria.objects.get(id=categoria_id)
+
+            # Tratamento de upload de imagem
             if image:
                 fs = FileSystemStorage()
                 filename = fs.save(image.name, image)
                 obj_produto.image = filename
 
-            # Save the Produto instance to the database
+            # Salvando a instância de Produto no banco de dados
             obj_produto.save()
             print(f"Produto {produto_nome} salvo com sucesso")
         except Exception as e:
@@ -220,5 +173,4 @@ def create_produto_view(request):
 
         return redirect("/produto")
 
-    return render(request, 'produto/produto-create.html', status=200)
-
+    return render(request, 'produto/produto-create.html', context=context, status=200)

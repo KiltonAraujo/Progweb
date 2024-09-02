@@ -46,6 +46,16 @@
             <label for="msgPromocao" class="col-md-2">Msg Promoção</label>
             <input value="{{ produto.msgPromocao }}" name="msgPromocao" disabled>
         </div>
+
+        <div class="row">
+            <label for="CategoriaFk" class="col-md-2">Categorias</label>
+            <input value="{{ produto.categoria.Categoria }}" name="CategoriaFk" disabled>
+        </div>
+        
+        <div class="row">
+            <label for="FabricanteFk" class="col-md-2">Fabricantes</label>
+            <input value="{{ produto.fabricante.Fabricante }}" name="CategoriaFk" disabled>
+        </div>
         
         <div class="row mt-3">
             {% if produto.image %}
