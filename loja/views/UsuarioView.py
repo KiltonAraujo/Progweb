@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from loja.models import Usuario
-from forms.UserUsuarioForm import *
+from loja.forms.UserUsuarioForm import *
 
 
 def list_usuario_view(request, id=None):
