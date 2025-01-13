@@ -176,3 +176,23 @@ def create_produto_view(request):
         return redirect("/produto")
 
     return render(request, 'produto/produto-create.html', context=context, status=200)
+
+def list_carrinho_view(request):
+    print ('list_carrinho_view')
+
+    carrinho_id = request.session.get('carrinho_id')
+    if carrinho_id:
+        print ('carrinho: ' + str(carrinho_id))
+        # Obtém o carrinho do usuário
+        carrinho = Carrinho.objects.filter(id=carrinho_id).first()
+        print ('Data do carrinho' + str(carrinho.criado_em) )
+        carrinho_item = None
+        # Verifica se o produto já existe no carrinho do usuário
+        carrinho_item = CarrinhoItem.objects.filter(carrinho_id=carrinho_id)
+    if carrinho_item:
+        print ('itens de carrinho encontrado: ' + str(carrinho_item))
+        context = {
+        'carrinho': carrinho,
+        'itens': carrinho_item
+        }
+    return render(request, 'carrinho/carrinho-listar.html', context=context)
