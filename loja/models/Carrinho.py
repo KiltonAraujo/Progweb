@@ -1,4 +1,5 @@
 from loja.models import *
+
 class Carrinho(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, null=True, related_name='carrinhos',on_delete=models.SET_NULL)
